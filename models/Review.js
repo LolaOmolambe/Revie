@@ -26,6 +26,17 @@ const reviewSchema = new mongoose.Schema(
     },
     upvotes: { type: Number, default: 0 },
     downvotes: { type: Number, default: 0 },
+    ratingsAverage: {
+      type: Number,
+      default: 4.5,
+      min: [1, "Rating must be above 1.0"],
+      max: [5, "Rating must be below 5.0"],
+      set: (val) => Math.round(val * 10) / 10, // 4.666666, 46.6666, 47, 4.7
+    },
+    ratingsQuantity: {
+      type: Number,
+      default: 0,
+    },
     images: [String],
     videos: [String],
     isDeleted: {
@@ -37,6 +48,12 @@ const reviewSchema = new mongoose.Schema(
 );
 
 reviewSchema.index({ apartment: 1, user: 1 });
+
+reviewSchema.pre(/^find/, function (next) {
+  this.find({ isDeleted: { $ne: true } });
+
+  next();
+});
 
 reviewSchema.pre(/^find/, function (next) {
   this

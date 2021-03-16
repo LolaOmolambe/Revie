@@ -24,15 +24,30 @@ const apartmentSchema = new mongoose.Schema(
 
       coordinates: [Number],
     },
+    creator: {
+      type: mongoose.Schema.ObjectId,
+      ref: "User",
+      required: [true, "Apartment must belong to a user"],
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     toJSON: { virtuals: true },
-    toObject: { virtuals: true }
+    toObject: { virtuals: true },
+    timestamps: true,
   }
-//   { timestamps: true }
 );
 
 apartmentSchema.index({ location: "2dsphere" });
+
+apartmentSchema.pre(/^find/, function (next) {
+  this.find({ isDeleted: { $ne: true } });
+
+  next();
+});
 
 // Virtual populate
 apartmentSchema.virtual("reviews", {
@@ -40,4 +55,5 @@ apartmentSchema.virtual("reviews", {
   foreignField: "apartment",
   localField: "_id",
 });
+
 module.exports = mongoose.model("Apartment", apartmentSchema);
