@@ -1,7 +1,7 @@
 # Revie
 
 - Revie is a hypothetical platform where users can sign up with their basic information and post reviews about apartments they've previously lived in.
-- API DOCS -   <br />
+- API DOCS - https://documenter.getpostman.com/view/12464626/Tz5tYvun  <br />
 
 
 ## Getting Started
