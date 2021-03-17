@@ -33,6 +33,7 @@ exports.addReview = async (req, res, next) => {
     let imageUrls = [];
     let videoUrls = [];
 
+   
     if (Object.keys(req.files).length !== 0) {
       if (req.files.images) {
         let imageFiles = req.files.images;
@@ -54,7 +55,7 @@ exports.addReview = async (req, res, next) => {
       type: "Point",
       coordinates: [parseFloat(latitude), parseFloat(longitude)],
     };
-
+   
     const newApartment = await Apartment.create({
       address: address,
       country: country,
@@ -62,6 +63,7 @@ exports.addReview = async (req, res, next) => {
       location: longlat,
       creator: req.user._id,
     });
+    
 
     const newReview = await Review.create({
       apartment: newApartment._id,
@@ -75,6 +77,7 @@ exports.addReview = async (req, res, next) => {
 
     return successResponse(res, 201, "Review added successfully", null);
   } catch (err) {
+    
     next(err);
   }
 };
@@ -222,7 +225,7 @@ exports.deleteReview = async (req, res, next) => {
     if (result.images.length > 0) {
       result.images.forEach((item) => {
         let filenameToRemove = item.split("/").slice(-1)[0];
-        console.log("filename ", filenameToRemove);
+      
 
         s3.deleteObject(
           {

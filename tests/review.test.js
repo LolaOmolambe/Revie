@@ -24,26 +24,27 @@ describe("Review model Endpoints", () => {
   });
 
   afterAll(async () => {
+    await User.deleteMany({});
     await Review.deleteMany({});
     await Apartment.deleteMany({});
     await mongoose.connection.close();
   });
 
-  //   it("should try to create review without being logged in and fail", async () => {
-  //     const res = await request(app).post("/api/review/").send({
-  //       address: "Lekki",
-  //       state: "Lagos",
-  //       country: "Nigeria",
-  //       enviromentReview: "Clean and tidy",
-  //       landlordReview: "Tolerant",
-  //       amenitiesReview: "Enough",
-  //       latitude: 3.8,
-  //       longitude: 4.5,
-  //     });
+  it("should try to create review without being logged in and fail", async () => {
+    const res = await request(app).post("/api/review/").send({
+      address: "Lekki",
+      state: "Lagos",
+      country: "Nigeria",
+      enviromentReview: "Clean and tidy",
+      landlordReview: "Tolerant",
+      amenitiesReview: "Enough",
+      latitude: 3.8,
+      longitude: 4.5,
+    });
 
-  //     expect(res.status).toEqual(401);
-  //     expect(res.body.status).toEqual("error");
-  //   });
+    expect(res.status).toEqual(401);
+    expect(res.body.status).toEqual("error");
+  });
 
   it("should try to create review with invalid payload and fail", async () => {
     const res = await request(app)
@@ -54,24 +55,27 @@ describe("Review model Endpoints", () => {
     expect(res.body.status).toEqual("error");
   });
 
-  //   it("authenticated user should try to create review with valid payload and pass", async () => {
-  //     const res = await request(app)
-  //       .post("/api/review/")
-  //       .set({ Authorization: "Bearer " + token })
-  //       .send({
-  //         address: "Lekki",
-  //         state: "Lagos",
-  //         country: "Nigeria",
-  //         enviromentReview: "Clean and tidy",
-  //         landlordReview: "Tolerant",
-  //         amenitiesReview: "Enough",
-  //         latitude: 3.8,
-  //         longitude: 4.5,
-  //       });
-  //     console.log(res.body);
-  //     expect(res.status).toEqual(200);
-  //     expect(res.body.status).toEqual("success");
-  //   });
+  it("authenticated user should try to create review with valid payload and pass", async () => {
+    const res = await request(app)
+      .post("/api/review/")
+
+      .set({
+        "Authorization": "Bearer " + token,
+        "content-type": "multipart/form-data",
+      })
+      .field("address", "Lekki")
+      .field("state", "Lagos")
+      .field("country", "Nigeria")
+      .field("enviromentReview", "Clean and tidy")
+      .field("landlordReview", "Tolerant")
+      .field("amenitiesReview", "Enough")
+      .field("latitude", 3.8)
+      .field("longitude", 4.5)
+      .attach("images")
+   
+    expect(res.status).toEqual(201);
+    expect(res.body.status).toEqual("success");
+  });
 
   it("should try to get all reviews", async () => {
     const res = await request(app).get("/api/review/");
