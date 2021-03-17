@@ -1,4 +1,5 @@
-const { errorResponse, successResponse } = require("../utility/response");
+const { errorResponse } = require("../utility/response");
+const AppError = require("../utility/appError");
 
 const handleCastErrorDB = (err) => {
   const message = `Invalid ${err.path}: ${err.value}.`;
@@ -28,44 +29,34 @@ const handleJWTExpiredError = () => {
 };
 
 const sendErrorDev = (err, req, res) => {
-    //console.log(err.message);
-    //console.log(err.isOperational);
   return errorResponse(res, err.statusCode, err.message, err.stack);
- 
 };
 
 const sendErrorProd = (err, req, res) => {
-  // A) API
-  // A) Operational, trusted error: send message to client
   if (err.isOperational) {
-    return errorResponse(res, err.statusCode, message, null);
-    // return res.status(err.statusCode).json({
-    //   status: err.status,
-    //   message: err.message,
-    // });
+    return errorResponse(res, err.statusCode, err.message, null);
   }
-  // B) Programming or other unknown error: don't leak error details
-  // 1) Log error
-  console.error("ERROR 💥", err);
+
   // 2) Send generic message
-  return errorResponse(res, 500, "Oops, Something went wrong", null);
-  //   return res.status(500).json({
-  //     status: "error",
-  //     message: "Something went very wrong!",
-  //   });
+  return errorResponse(
+    res,
+    500,
+    "Oops, Something went wrong, Please try again",
+    null
+  );
 };
 
 module.exports = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
-  //err.status = err.status || "error";
-  console.log(process.env.NODE_ENV);
 
   if (process.env.NODE_ENV === "development") {
     sendErrorDev(err, req, res);
-  } else if (process.env.NODE_ENV === "production") {
-    let error = { ...err };
+  } else if (
+    process.env.NODE_ENV === "production" ||
+    process.env.NODE_ENV === "test"
+  ) {
+    let error = err;
     error.message = err.message;
-
     if (error.name === "CastError") error = handleCastErrorDB(error);
     if (error.code === 11000) error = handleDuplicateFieldsDB(error);
     if (error.name === "ValidationError")

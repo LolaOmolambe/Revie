@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const { successResponse } = require("../utility/response");
 const queryHelpers = require("../utility/queryHelper");
+const AppError = require("../utility/appError");
 
 exports.getAllUsers = async (req, res, next) => {
   try {
@@ -17,6 +18,9 @@ exports.getAllUsers = async (req, res, next) => {
 exports.getUser = async (req, res, next) => {
   try {
     let user = await User.findById(req.params.id);
+    if (!user) {
+      return next(new AppError("User does not exist", 401));
+    }
     return successResponse(res, 200, "User fetched sucessfully", { user });
   } catch (err) {
     next(err);

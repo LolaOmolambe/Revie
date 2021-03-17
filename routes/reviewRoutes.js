@@ -4,7 +4,6 @@ const authController = require("../controllers/auth");
 const middleware = require("../utility/validationMiddleware");
 const schemas = require("../utility/validationSchema");
 const uploadService = require("../utility/imageUpload");
-//const router = express.Router({ mergeParams: true });
 const router = express.Router();
 
 const uploadFiles = uploadService.fields([
@@ -12,13 +11,11 @@ const uploadFiles = uploadService.fields([
   { name: "images", maxCount: 3 },
 ]);
 
-//router.route("/", reviewController.addToExistingReview);
-// router
-//   .route("/")
-//   .post(authController.protectRoutes, reviewController.addToExistingReview)
-//   .get(reviewController.getAllReviews);
-
-router.post("/rate/:id/:like", reviewController.rateReview);
+router.post(
+  "/rate/:id",
+  middleware(schemas.ratingSchema),
+  reviewController.rateReview
+);
 router
   .route("/")
   .get(reviewController.getAllReviews)
@@ -33,8 +30,5 @@ router
   .route("/:id")
   .get(reviewController.getAReview)
   .delete(authController.protectRoutes, reviewController.deleteReview);
-//router.get("/apartment/:apartmentId", reviewController.getAllReviews);
-
-
 
 module.exports = router;

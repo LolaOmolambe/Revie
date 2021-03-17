@@ -35,7 +35,7 @@ const upload = multer({
     },
     key: function (req, file, cb) {
       let key = "";
-      //console.log("file ", file);
+      
       if (file.fieldname == "images") {
         key = `revieImages/${Date.now().toString()}-${file.originalname.toLowerCase()}`;
       } else if (file.fieldname == "videos") {

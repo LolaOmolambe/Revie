@@ -24,14 +24,11 @@ const reviewSchema = new mongoose.Schema(
       type: String,
       required: [true, "Amenities Review can not be empty!"],
     },
-    upvotes: { type: Number, default: 0 },
-    downvotes: { type: Number, default: 0 },
+    ratings: { type: [Number], min: 1, max: 5 },
     ratingsAverage: {
       type: Number,
-      default: 4.5,
-      min: [1, "Rating must be above 1.0"],
-      max: [5, "Rating must be below 5.0"],
-      set: (val) => Math.round(val * 10) / 10, // 4.666666, 46.6666, 47, 4.7
+      default: 1.0,
+      set: (val) => Math.round(val * 10) / 10,
     },
     ratingsQuantity: {
       type: Number,
@@ -56,45 +53,43 @@ reviewSchema.pre(/^find/, function (next) {
 });
 
 reviewSchema.pre(/^find/, function (next) {
-  this
-    //   .populate({
-    //     path: "apartment",
-    //     select: "address",
-    //   })
-    .populate({
-      path: "user",
-      select: "name",
-    });
+  this.populate({
+    path: "user",
+    select: "name",
+  });
 
   next();
 });
 
-reviewSchema.statics.calcAverageRatings = async function (tourId) {
+reviewSchema.statics.calcAverageRatings = async function (review) {
   const stats = await this.aggregate([
     {
-      $match: { tour: tourId },
+      $match: { _id: review._id },
     },
     {
-      $group: {
-        _id: "$tour",
-        nRating: { $sum: 1 },
-        avgRating: { $avg: "$rating" },
+      $project: {
+        averageRating: { $avg: "$ratings" },
       },
     },
   ]);
-  // console.log(stats);
-
-  if (stats.length > 0) {
-    await Tour.findByIdAndUpdate(tourId, {
-      ratingsQuantity: stats[0].nRating,
-      ratingsAverage: stats[0].avgRating,
+  
+  if (stats[0].averageRating > 0) {
+    await this.findByIdAndUpdate(review._id, {
+      $inc: { ratingsQuantity: 1 },
+      ratingsAverage: stats[0].averageRating,
     });
   } else {
-    await Tour.findByIdAndUpdate(tourId, {
+    await this.findByIdAndUpdate(review._id, {
       ratingsQuantity: 0,
-      ratingsAverage: 4.5,
+      ratingsAverage: 0,
     });
   }
 };
+
+reviewSchema.post("save", function (doc, next) {
+  this.constructor.calcAverageRatings(doc);
+
+  next();
+});
 
 module.exports = mongoose.model("Review", reviewSchema);

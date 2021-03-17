@@ -5,7 +5,6 @@ const Review = require("../models/Review");
 const QueryHelper = require("../utility/queryHelper");
 const aws = require("aws-sdk");
 
-//Work on validation
 exports.addReview = async (req, res, next) => {
   try {
     let {
@@ -25,22 +24,30 @@ exports.addReview = async (req, res, next) => {
       );
     }
 
+    if (!enviromentReview || !amenitiesReview) {
+      return next(
+        new AppError("Invalid Payload. Request body is not complete", 400)
+      );
+    }
+
     let imageUrls = [];
     let videoUrls = [];
 
-    if (req.files.images.length > 0) {
-      let imageFiles = req.files.images;
+    if (Object.keys(req.files).length !== 0) {
+      if (req.files.images) {
+        let imageFiles = req.files.images;
 
-      imageFiles.map((item) => {
-        imageUrls.push(item.location);
-      });
-    }
+        imageFiles.map((item) => {
+          imageUrls.push(item.location);
+        });
+      }
 
-    if (req.files.videos.length > 0) {
-      let videoFiles = req.files.videos;
-      videoFiles.map((item) => {
-        videoUrls.push(item.location);
-      });
+      if (req.files.videos) {
+        let videoFiles = req.files.videos;
+        videoFiles.map((item) => {
+          videoUrls.push(item.location);
+        });
+      }
     }
 
     let longlat = {
@@ -78,7 +85,6 @@ exports.addToExistingReview = async (req, res, next) => {
 
     let imageUrls = [];
     let videoUrls = [];
-    console.log("files ", req.files);
 
     if (req.files.images) {
       let imageFiles = req.files.images;
@@ -173,23 +179,13 @@ exports.getAllReviewsGivenByAUser = async (req, res, next) => {
 
 exports.rateReview = async (req, res, next) => {
   try {
-    let like = req.params.like;
-
-    if (like === "true") {
-      let review = await Review.findOneAndUpdate(
-        { _id: req.params.id },
-        {
-          $inc: { upvotes: 1 },
-        }
-      );
-    } else if (like === "false") {
-      let review = await Review.findOneAndUpdate(
-        { _id: req.params.id },
-        {
-          $inc: { downvotes: 1 },
-        }
-      );
+    let rating = req.body.rating;
+    let review = await Review.findById(req.params.id);
+    if (!review) {
+      return next(new AppError("Review not found", 401));
     }
+    review.ratings.push(rating);
+    await review.save();
 
     return successResponse(res, 200, "Thank you for rating", null);
   } catch (err) {
@@ -240,7 +236,6 @@ exports.deleteReview = async (req, res, next) => {
             if (data) {
               console.log(data);
             }
-            //console.log((data));
           }
         );
       });

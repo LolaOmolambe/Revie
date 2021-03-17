@@ -13,13 +13,9 @@ router
   .put(userController.updateUser)
   .delete(userController.deleteCurrentUser);
 
-router.use(authController.restrictTo("admin"));
-
-router.get("/", userController.getAllUsers);
+router.get("/", authController.restrictTo("admin"), userController.getAllUsers);
 router
   .route("/:id")
   .get(userController.getUser)
-  .delete(userController.deleteUser);
-module.exports = router;
-
+  .delete(authController.restrictTo("admin"), userController.deleteUser);
 module.exports = router;

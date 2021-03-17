@@ -11,22 +11,6 @@ const schemas = {
     password: Joi.string().required(),
     passwordConfirm: Joi.string().required(),
   }),
-  // reviewModel: Joi.object().keys({
-  //   review: Joi.object()
-  //     .required()
-  //     .keys({
-  //       enviromentReview: Joi.string().min(5).required(),
-  //       amenitiesReview: Joi.string().min(5).required(),
-  //     }),
-  //   apartment: Joi.object()
-  //     .required()
-  //     .keys({
-  //       address: Joi.string().min(5).required(),
-  //       country: Joi.string().required(),
-  //       state: Joi.string().required(),
-  //       location: Joi.array().required()
-  //     }),
-  // }),
   reviewModel: Joi.object().keys({
     address: Joi.string().min(5).required(),
     country: Joi.string().required(),
@@ -34,6 +18,9 @@ const schemas = {
     location: Joi.array().required(),
     enviromentReview: Joi.string().min(5).required(),
     amenitiesReview: Joi.string().min(5).required(),
+  }),
+  ratingSchema: Joi.object().keys({
+    rating: Joi.number().integer().min(1).max(5),
   }),
 };
 
